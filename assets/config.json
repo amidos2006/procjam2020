@@ -1,0 +1,12 @@
+{
+  "qa_threshold": 0.05,
+  "max_length": 50,
+  "top_k": 10,
+  "temperature": 0.8,
+  "repeat_penalty": 1.2,
+  "pickup_size": 20,
+  "qa_name": "deepset/roberta-base-squad2",
+  "qa_folder": "./assets/qa_pipeline/",
+  "gpt2_name": "lysandre/arxiv",
+  "gpt2_folder": "./assets/gpt2_pipeline"
+}
