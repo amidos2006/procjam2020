@@ -1,29 +1,18 @@
 from transformers import pipeline
+from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 import torch
 import re
 import numpy as np
 import os
 
-class ConversationMemory:
-    def __init__(self, max_size):
-        self.memory = []
-        self.max_size = max_size
-
-    def add(self, question, answer):
-        self.memory.append((question, answer))
-        if len(self.memory) > self.max_size:
-            del self.memory[0]
-
-    def prompt(self):
-        pass
-
 class ConversationEngine:
-    def __init__(self, qa_threshold, top_k, max_length, temp, penalty):
+    def __init__(self, qa_threshold, top_k, max_length, temp, penalty, modifier):
         self.qa_threshold = qa_threshold
         self.top_k = top_k
         self.max_length = max_length
         self.temp = temp
         self.penalty = penalty
+        self.modifier = modifier
         self.verbose = False
 
     def load_pipeline(self, qa_name, qa_folder, gpt2_name, gpt2_folder):
@@ -40,19 +29,24 @@ class ConversationEngine:
 
     def test_qa(self, question, context):
         response = self.qa_pipeline(question=question, context=context)
+        if self.verbose:
+            print(response)
         answer = response['answer']
-        if (len(answer) > 0 and len(answer) < len(inputData) - 1) and response['score'] >= self.qa_threshold:
+        if (len(answer) > 0 and len(answer) < len(context) - 1) and response['score'] >= self.qa_threshold:
             return answer.strip()
+        return ''
 
-    def test_gpt2(self, prompt):
+    def test_gpt2(self, prompt, modifier=1):
         response = self.gpt2_pipeline(prompt,
                 pad_token_id = self.gpt2_pipeline.tokenizer.eos_token_id,
                 do_sample=True,
-                max_length=len(self.gpt2_pipeline.tokenizer.encode(prompt)) + self.max_length,
+                max_length=len(self.gpt2_pipeline.tokenizer.encode(prompt)) + self.max_length * modifier,
                 top_k=self.top_k,
                 temperature=self.temp,
                 repetition_penalty=self.penalty
                 )[0]
+        if self.verbose:
+            print(response)
         answer = response['generated_text'][len(prompt):]
         answer = re.sub('[〈♥✪✌~ǫ]*', '', answer)
         answer = re.sub('\n', ' ', answer)
@@ -70,42 +64,15 @@ class ConversationEngine:
 
     def get_response(self, player, user, question):
         prompt = user.get_prompt(player, question)
-        response = self.gpt2_pipeline(
-                prompt,
-                pad_token_id = self.gpt2_pipeline.tokenizer.eos_token_id,
-                do_sample=True,
-                max_length=len(self.gpt2_pipeline.tokenizer.encode(prompt)) + 2 * self.max_length,
-                top_k=self.top_k,
-                temperature=self.temp,
-                repetition_penalty=self.penalty
-            )[0]
-        if self.verbose:
-            print(response)
-        answer = response['generated_text'][len(prompt):]
-        answer = re.sub('[〈♥✪✌~]*', '', answer)
-        answer = re.sub('\n', ' ', answer)
-        index = len(answer)
-        if answer.find('.') > self.max_length / 10:
-            index = min(index, answer.find('.'))
-        if answer.find('?') > self.max_length / 10:
-            index = min(index, answer.find('?'))
-        if answer.find('!') > self.max_length / 10:
-            index = min(index, answer.find('!'))
-        gpt2_answer = answer[0:index+1]
+        gpt2_answer = self.test_gpt2(prompt, self.modifier)
 
-        response = self.qa_pipeline(question=question, context=user.context[0] + " " + gpt2_answer)
-        if self.verbose:
-            print(response)
-        answer = response['answer']
-        if (len(answer) > 0 and len(answer) < len(prompt + " " + gpt2_answer) - 1) and response['score'] >= self.qa_threshold:
-            return answer.strip()
+        answer = self.test_qa(question, user.context[0] + " " + gpt2_answer)
+        if len(answer) > 0:
+            return answer
 
         for inputData in user.context:
-            response = self.qa_pipeline(question=question, context=inputData)
-            if self.verbose:
-                print(response)
-            answer = response['answer']
-            if (len(answer) > 0 and len(answer) < len(inputData) - 1) and response['score'] >= self.qa_threshold:
-                return answer.strip()
+            answer = self.test_qa(question, inputData)
+            if len(answer) > 0:
+                return answer
 
         return gpt2_answer.strip()

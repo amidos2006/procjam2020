@@ -1,5 +1,22 @@
 import random
 
+class ConversationMemory:
+    def __init__(self, max_size):
+        self.memory = []
+        self.max_size = max_size
+
+    def add(self, playerText, userText):
+        self.memory.append((playerText, userText))
+        if len(self.memory) > self.max_size:
+            del self.memory[0]
+
+    def prompt(self, player, user):
+        result = ""
+        for t in self.memory:
+            result += player.get_first_name() + ": " + t[0] + " "
+            result += user.get_first_name() + ": " + t[1] + " "
+        return result
+
 class PaperInfo:
     def __init__(self, name, citations, description):
         self.name = name
@@ -10,6 +27,8 @@ class PaperInfo:
         return self.name + "can be described as: " + self.description
 
 class UserInfo:
+    memory_size = 5
+
     def __init__(self, name, pic, citations, hindex, i10index):
         self.name = name
         self.pic = pic
@@ -22,6 +41,7 @@ class UserInfo:
         self.love = 0
         self.prompt = ""
         self.context = []
+        self.memory = ConversationMemory(UserInfo.memory_size)
 
     def init_personal_info(self, engine, player):
         prompt = ""
@@ -128,6 +148,9 @@ class UserInfo:
 
     def init_prompt(self, player):
         prompt = ""
+        prompt += "{} is interested in {}. ".format(self.get_first_name(), self.get_interests())
+        prompt += "They work as {}. ".format(self.get_job())
+        prompt += "They have {} citations, {} hindex, and {} i10index".format(self.citations, self.hindex, self.i10index)
         prompt += "In a conversation between {} and {}. ".format(player.get_first_name(), self.get_first_name())
         # prompt += "{}: Hello, how are you? ".format(player.get_first_name())
         # prompt += "{}: I am fine what about you. ".format(self.get_first_name())
@@ -170,6 +193,7 @@ class UserInfo:
 
     def get_prompt(self, player, question):
         prompt = self.prompt
+        prompt += self.memory.prompt(player, self)
         if question.strip()[-1] not in [".", "!", "?"]:
             question = question.strip() + "."
         prompt += "{}: {} ".format(player.get_first_name(), question)

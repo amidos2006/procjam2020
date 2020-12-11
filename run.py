@@ -7,7 +7,8 @@ if __name__ == '__main__':
     config = json.load(f)
     f.close()
 
-    engine = ConversationEngine(config["qa_threshold"], config["top_k"], config["max_length"], config["temperature"], config["repeat_penalty"])
+    UserInfo.memory_size = config["memory_size"]
+    engine = ConversationEngine(config["qa_threshold"], config["top_k"], config["max_length"], config["temperature"], config["repeat_penalty"], config["modifier"])
     print('Please wait while models are being loaded.')
     engine.load_pipeline(config["qa_name"], config["qa_folder"], config["gpt2_name"], config["gpt2_folder"])
 
@@ -40,6 +41,7 @@ if __name__ == '__main__':
         if question.lower().strip() == "exit":
             break
         answer = engine.get_response(player, user, question)
+        user.memory.add(question, answer)
         print()
         print("{}: {}".format(user.get_first_name(), answer))
         print()
