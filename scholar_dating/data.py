@@ -43,93 +43,6 @@ class UserInfo:
         self.context = []
         self.memory = ConversationMemory(UserInfo.memory_size)
 
-    def init_personal_info(self, engine, player):
-        prompt = ""
-
-        input = "Hello {}".format(player.get_first_name())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + "! "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "My name is {}".format(self.name)
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "I am a {}".format(self.get_job())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "I have {} citations".format(self.citations)
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "I am interested in {}".format(self.get_interests())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        return prompt
-
-    def init_fiction_info(self, engine):
-        prompt = ""
-
-        # input = "I work as {} that is why I live in".format(self.get_job())
-        # output = engine.test_gpt2(input)
-        # if len(output) == 0:
-        #     prompt += input + ". "
-        # else:
-        #     prompt += input + " " + output + " "
-
-        input = "I hate you like a bad paper because".format(self.get_job())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "I dislike you and your papers because".format(self.get_job())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "I like you like an IJCAI paper because".format(self.get_job())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        input = "I love you because you are as classic as AAAI paper because".format(self.get_job())
-        output = engine.test_gpt2(input)
-        if len(output) == 0:
-            prompt += input + ". "
-        else:
-            prompt += input + " " + output + " "
-
-        # input = "I age quickly and wisely like NIPs paper because"
-        # output = engine.test_gpt2(input)
-        # if len(output) == 0:
-        #     prompt += input + ". "
-        # else:
-        #     prompt += input + " " + output + " "
-
-        return prompt
-
     def init_pickup_lines(self, engine, size):
         prompt = ""
 
@@ -140,32 +53,24 @@ class UserInfo:
         for i in range(size):
             # answer = engine.test_gpt2(lines[i])
             # prompt += lines[i] + " " + answer + " "
-            if lines[i].strip()[-1] not in [".", "!", "?"]:
-                lines[i] = lines[i].strip() + "."
+            lines[i] = lines[i].strip()
+            if lines[i][-1] not in [".", "!", "?"]:
+                lines[i] = lines[i] + "."
             prompt += lines[i] + " "
 
         return prompt
 
-    def init_prompt(self, player):
-        prompt = ""
-        prompt += "{} is interested in {}. ".format(self.get_first_name(), self.get_interests())
-        prompt += "They work as {}. ".format(self.get_job())
-        prompt += "They have {} citations, {} hindex, and {} i10index".format(self.citations, self.hindex, self.i10index)
-        prompt += "In a conversation between {} and {}. ".format(player.get_first_name(), self.get_first_name())
-        # prompt += "{}: Hello, how are you? ".format(player.get_first_name())
-        # prompt += "{}: I am fine what about you. ".format(self.get_first_name())
-        # prompt += "{}: What do you do for living? ".format(player.get_first_name())
-        # prompt += "{}: I am a {}. ".format(self.get_first_name(), self.get_job())
-        # prompt += "{}: What are your interests? ".format(player.get_first_name())
-        # prompt += "{}: I am interested into {}. ".format(self.get_first_name(), self.get_interests())
-        return prompt
+    def get_paper_prompts(self):
+        return [p.get_info() for p in self.paper]
 
-    def init(self, engine, player, size):
-        self.context.append(self.init_personal_info(engine, player))
-        self.context.append(self.init_pickup_lines(engine, size))
-        self.context.append(self.init_fiction_info(engine))
+    def init(self, config, parser, engine, player):
+        for info_file in config["fic_info"]:
+            self.context.append(parser.parse_fic(info_file, player, self))
+        self.context.insert(1, self.init_pickup_lines(engine, config["pickup_size"]))
         self.context = self.context + self.get_paper_prompts()
-        self.prompt = self.init_prompt(player)
+        self.prompt = parser.parse_normal(config["prompt"], player, self)
+        print(self.context)
+        print(self.prompt)
 
     def get_first_name(self):
         return self.name.split(' ')[0]
@@ -174,10 +79,7 @@ class UserInfo:
         return ", ".join(self.job)
 
     def get_interests(self):
-        return ",".join(self.interest)
-
-    def get_pickup(self):
-        return " ".join(self.pickup)
+        return ", ".join(self.interest)
 
     def add_job(self, job):
         self.job.append(job)
@@ -187,9 +89,6 @@ class UserInfo:
 
     def add_interest(self, interest):
         self.interest.append(interest)
-
-    def get_paper_prompts(self):
-        return [p.get_info() for p in self.paper]
 
     def get_prompt(self, player, question):
         prompt = self.prompt

@@ -10,5 +10,7 @@
   "qa_name": "deepset/roberta-base-squad2",
   "qa_folder": "./assets/qa_pipeline/",
   "gpt2_name": "lysandre/arxiv",
-  "gpt2_folder": "./assets/gpt2_pipeline"
+  "gpt2_folder": "./assets/gpt2_pipeline",
+  "fic_info": ["./assets/ficinfo1.txt", "./assets/ficinfo2.txt"],
+  "prompt": "./assets/prompt.txt"
 }

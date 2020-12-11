@@ -1,0 +1,1 @@
+{user.first_name} is interested in {user.interests}. They work as {user.job}. They have {user.citations} citations, {user.hindex} hindex, and {user.i10index} i10index. In a conversation between {player.name} and {user.name}. 

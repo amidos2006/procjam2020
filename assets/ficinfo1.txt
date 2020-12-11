@@ -1,0 +1,5 @@
+Hello {player.first_name}
+My name is {user.first_name}
+I am a {user.job}
+I have {user.citations} citations
+I am interested in {user.interests}
