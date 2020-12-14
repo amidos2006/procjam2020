@@ -1,0 +1,4 @@
+I am interested in {user.interests}
+I love {user.interests}
+I like {user.interests}
+I have a lot of interests such as: {user.interests}

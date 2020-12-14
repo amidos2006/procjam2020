@@ -1,5 +1,7 @@
 Hello {player.first_name}
-My name is {user.first_name}
-I am a {user.job}
-I have {user.citations} citations
-I am interested in {user.interests}
+Hi {player.first_name}
+Howdy {player.first_name}
+Welcome {player.first_name}
+Hellooooooo {player.first_name}
+Hello sexy
+Hi handsome

@@ -1,0 +1,4 @@
+I have {user.citations} citations
+My papers got me {user.citations} citations
+People love my papers that's why I got {user.citations} citations
+If you combine all my paper citations, I have {user.citations} citations

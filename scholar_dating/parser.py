@@ -1,3 +1,5 @@
+import random
+
 class Parser:
     def __init__(self, engine):
         self.engine = engine
@@ -22,12 +24,14 @@ class Parser:
 
         return line
 
-    def parse_fic(self, file, player, user):
+    def parse_fic(self, file, size, player, user):
         result = ""
         f = open(file)
         lines = f.readlines()
+        random.shuffle(lines)
         f.close()
-        for l in lines:
+        for i in range(size):
+            l = lines[i]
             input = self.parse_line(l, player, user)
             output = self.engine.test_gpt2(input)
             if len(output) == 0:

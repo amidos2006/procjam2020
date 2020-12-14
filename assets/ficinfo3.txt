@@ -1,0 +1,4 @@
+I am a {user.job}
+I work as {user.job}
+As you see, I am {user.job}
+It is written in my id that I am {user.job}

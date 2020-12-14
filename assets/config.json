@@ -11,6 +11,14 @@
   "qa_folder": "./assets/qa_pipeline/",
   "gpt2_name": "lysandre/arxiv",
   "gpt2_folder": "./assets/gpt2_pipeline",
-  "fic_info": ["./assets/ficinfo1.txt", "./assets/ficinfo2.txt"],
+  "fic_info": [
+    {"file": "./assets/ficinfo1.txt", "size": 1},
+    {"file": "./assets/ficinfo3.txt", "size": 1},
+    {"file": "./assets/ficinfo4.txt", "size": 1},
+    {"file": "./assets/ficinfo5.txt", "size": 1},
+    {"file": "./assets/ficinfo6.txt", "size": 2},
+    {"file": "./assets/ficinfo7.txt", "size": 2}
+  ],
+  "max_fic_size": 4,
   "prompt": "./assets/prompt.txt"
 }

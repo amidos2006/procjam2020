@@ -64,8 +64,15 @@ class UserInfo:
         return [p.get_info() for p in self.paper]
 
     def init(self, config, parser, engine, player):
-        for info_file in config["fic_info"]:
-            self.context.append(parser.parse_fic(info_file, player, self))
+        context = ""
+        max_size = 0
+        for info in config["fic_info"]:
+            context += parser.parse_fic(info["file"], info["size"], player, self) + " "
+            max_size += info["size"]
+            if max_size >= config["max_fic_size"]:
+                self.context.append(context)
+                context = ""
+                max_size = 0
         self.context.insert(1, self.init_pickup_lines(engine, config["pickup_size"]))
         self.context = self.context + self.get_paper_prompts()
         self.prompt = parser.parse_normal(config["prompt"], player, self)
